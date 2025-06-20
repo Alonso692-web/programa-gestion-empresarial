@@ -1,14 +1,15 @@
 from flask import Flask, render_template, request, jsonify
 import numpy as np
-import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
 import base64
 import io
-import json
+#import pandas as pd
+#import seaborn as sns
+#from scipy import stats
+
+#import json
 
 app = Flask(__name__)
 
