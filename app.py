@@ -1,82 +1,92 @@
 from flask import Flask, render_template, request, jsonify
 import numpy as np
+import pandas as pd
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import base64
 import io
-#import pandas as pd
-#import seaborn as sns
-#from scipy import stats
-
-#import json
+import base64
+import json
 
 app = Flask(__name__)
 
 class AnalisisEstadistico:
     def __init__(self):
         self.es_muestral = True
-    
+        # Tabla de constantes para gráficos de control. Fuente: Estándares de Ingeniería.
+        self.CONTROL_CHART_CONSTANTS = {
+            2: {'A2': 1.880, 'D3': 0, 'D4': 3.267}, 3: {'A2': 1.023, 'D3': 0, 'D4': 2.574},
+            4: {'A2': 0.729, 'D3': 0, 'D4': 2.282}, 5: {'A2': 0.577, 'D3': 0, 'D4': 2.114},
+            6: {'A2': 0.483, 'D3': 0, 'D4': 2.004}, 7: {'A2': 0.419, 'D3': 0.076, 'D4': 1.924},
+            8: {'A2': 0.373, 'D3': 0.136, 'D4': 1.864}, 9: {'A2': 0.337, 'D3': 0.184, 'D4': 1.816},
+            10: {'A2': 0.308, 'D3': 0.223, 'D4': 1.777}, 11: {'A2': 0.285, 'D3': 0.256, 'D4': 1.744},
+            12: {'A2': 0.266, 'D3': 0.283, 'D4': 1.717}, 13: {'A2': 0.249, 'D3': 0.307, 'D4': 1.693},
+            14: {'A2': 0.235, 'D3': 0.328, 'D4': 1.672}, 15: {'A2': 0.223, 'D3': 0.347, 'D4': 1.653}
+        }
+
     def calcular_estadisticas_basicas(self, datos):
         datos = np.array(datos)
-        media = float(np.mean(datos))
-        mediana = float(np.median(datos))
+        media = float(np.mean(datos)); mediana = float(np.median(datos))
         valores_unicos, conteos = np.unique(datos, return_counts=True)
         max_count = np.max(conteos)
         modas = valores_unicos[conteos == max_count]
-        
         if len(modas) == 1: moda = float(modas[0])
         elif len(modas) == len(valores_unicos): moda = "No hay moda"
         else: moda = [float(m) for m in modas]
-        
         if self.es_muestral:
             varianza = float(np.var(datos, ddof=1)) if len(datos) > 1 else 0
             desviacion_std = float(np.std(datos, ddof=1)) if len(datos) > 1 else 0
         else:
             varianza = float(np.var(datos, ddof=0))
             desviacion_std = float(np.std(datos, ddof=0))
-        
         return {
             'media': round(media, 4), 'mediana': round(mediana, 4), 'moda': moda,
             'varianza': round(varianza, 4), 'desviacion_estandar': round(desviacion_std, 4),
             'valor_minimo': round(float(np.min(datos)), 4), 'valor_maximo': round(float(np.max(datos)), 4),
             'rango': round(float(np.max(datos) - np.min(datos)), 4)
         }
-    
-    def calcular_estadisticas_agrupadas(self, clases, frecuencias):
-        puntos_medios = np.array([(float(c.split('-')[0]) + float(c.split('-')[1])) / 2 for c in clases])
-        frecuencias = np.array(frecuencias)
-        total_datos = np.sum(frecuencias)
-        media = float(np.sum(puntos_medios * frecuencias) / total_datos)
+
+    def calcular_analisis_subgrupos(self, df):
+        num_muestras, tamano_muestra = df.shape
+        if tamano_muestra not in self.CONTROL_CHART_CONSTANTS:
+            raise ValueError(f"No hay constantes para tamaño de muestra n={tamano_muestra}. Tamaños soportados: 2-15.")
         
-        if self.es_muestral:
-            varianza = float(np.sum(frecuencias * (puntos_medios - media)**2) / (total_datos - 1)) if total_datos > 1 else 0
-        else:
-            varianza = float(np.sum(frecuencias * (puntos_medios - media)**2) / total_datos)
+        # Calcular promedios y rangos para cada muestra
+        promedios_x = df.mean(axis=1)
+        rangos_r = df.max(axis=1) - df.min(axis=1)
         
-        desviacion_std = float(np.sqrt(varianza))
-        frecuencias_acum = np.cumsum(frecuencias)
-        clase_mediana_idx = int(np.where(frecuencias_acum >= total_datos/2)[0][0])
-        clase_modal_idx = int(np.argmax(frecuencias))
-        clase_modal = clases[clase_modal_idx]
+        # Calcular líneas centrales
+        gran_media_x_bar_bar = promedios_x.mean()
+        rango_promedio_r_bar = rangos_r.mean()
         
-        # Sesgo y Curtosis
-        momento3 = float(np.sum(frecuencias * (puntos_medios - media)**3) / total_datos)
-        momento4 = float(np.sum(frecuencias * (puntos_medios - media)**4) / total_datos)
-        sesgo = float(momento3 / (desviacion_std**3)) if desviacion_std > 0 else 0
-        curtosis = float((momento4 / (desviacion_std**4)) - 3) if desviacion_std > 0 else 0
+        # Obtener constantes
+        constantes = self.CONTROL_CHART_CONSTANTS[tamano_muestra]
+        A2, D3, D4 = constantes['A2'], constantes['D3'], constantes['D4']
+        
+        # Calcular límites de control para la gráfica X
+        lcs_x = gran_media_x_bar_bar + A2 * rango_promedio_r_bar
+        lci_x = gran_media_x_bar_bar - A2 * rango_promedio_r_bar
+        
+        # Calcular límites de control para la gráfica R
+        lcs_r = D4 * rango_promedio_r_bar
+        lci_r = D3 * rango_promedio_r_bar
         
         return {
-            'media': round(media, 4), 'mediana_aproximada': f"Clase {clases[clase_mediana_idx]}", 'moda': f"Clase modal: {clase_modal}",
-            'varianza': round(varianza, 4), 'desviacion_estandar': round(desviacion_std, 4),
-            'sesgo': round(sesgo, 4), 'curtosis': round(curtosis, 4)
+            "metricas": {
+                'numero_muestras_k': num_muestras, 'tamano_muestra_n': tamano_muestra,
+                'gran_media_x_bar_bar': round(gran_media_x_bar_bar, 4),
+                'rango_promedio_r_bar': round(rango_promedio_r_bar, 4),
+                'lcs_x': round(lcs_x, 4), 'lci_x': round(lci_x, 4),
+                'lcs_r': round(lcs_r, 4), 'lci_r': round(lci_r, 4)
+            },
+            "datos_grafica": {
+                'promedios': list(promedios_x), 'rangos': list(rangos_r)
+            }
         }
-    
+
     def crear_tabla_frecuencias(self, datos):
         valores_unicos, frecuencias = np.unique(datos, return_counts=True)
-        n_total = len(datos)
-        tabla = []
-        frecuencia_acumulada = 0
+        n_total = len(datos); tabla = []; frecuencia_acumulada = 0
         for valor, freq in zip(valores_unicos, frecuencias):
             frecuencia_acumulada += int(freq)
             freq_relativa = float(freq) / n_total
@@ -86,8 +96,8 @@ class AnalisisEstadistico:
                 'frecuencia_acumulada': frecuencia_acumulada, 'frecuencia_relativa_acumulada': round(freq_relativa_acum, 4)
             })
         return tabla
-    
-    def generar_graficas(self, datos, tipo='desagrupado', clases=None, frecuencias=None, tabla_frecuencias=None):
+
+    def generar_graficas(self, datos=None, tipo='desagrupado', tabla_frecuencias=None, subgrupos_data=None):
         graficas = {}
         def guardar_grafica():
             buf = io.BytesIO()
@@ -113,36 +123,32 @@ class AnalisisEstadistico:
                 plt.figure(figsize=(8, 5)); plt.bar([str(v) for v in valores], frec_rel, color='mediumpurple', alpha=0.7); plt.title('Gráfica de Frecuencia Relativa'); plt.xlabel('Valores'); plt.ylabel('Frecuencia Relativa'); plt.xticks(rotation=45); graficas['frecuencia_relativa'] = guardar_grafica()
                 plt.figure(figsize=(8, 5)); plt.bar([str(v) for v in valores], frec_acum, color='coral', alpha=0.7); plt.title('Gráfica de Frecuencia Acumulada'); plt.xlabel('Valores'); plt.ylabel('Frecuencia Acumulada'); plt.xticks(rotation=45); graficas['frecuencia_acumulada'] = guardar_grafica()
         
-        elif tipo == 'agrupado' and clases and frecuencias:
-            # ### INICIO DE NUEVA LÓGICA PARA DATOS AGRUPADOS ###
-            puntos_medios = np.array([(float(c.split('-')[0]) + float(c.split('-')[1])) / 2 for c in clases])
-            
-            # 1. Histograma
-            plt.figure(figsize=(8, 5)); plt.bar(clases, frecuencias, alpha=0.75, color='skyblue', edgecolor='black'); plt.title('Histograma'); plt.xlabel('Clases'); plt.ylabel('Frecuencia'); plt.xticks(rotation=45); graficas['histograma'] = guardar_grafica()
+        elif tipo == 'agrupado' and subgrupos_data:
+            metricas = subgrupos_data['metricas']
+            datos_grafica = subgrupos_data['datos_grafica']
+            fig, axs = plt.subplots(2, 1, figsize=(12, 9), sharex=True)
+            muestras = np.arange(1, metricas['numero_muestras_k'] + 1)
 
-            # 2. Diagrama de Caja y Bigotes (Simulado)
-            simulated_data = np.repeat(puntos_medios, frecuencias)
-            plt.figure(figsize=(6, 5)); plt.boxplot(simulated_data, vert=True, patch_artist=True, boxprops={'facecolor': 'lightgreen'}); plt.title('Diagrama de Caja (Simulado)'); plt.ylabel('Valores'); graficas['boxplot'] = guardar_grafica()
+            # Gráfica X-bar
+            axs[0].plot(muestras, datos_grafica['promedios'], 'o-', color='darkcyan', label='Promedio de Muestra (X̄)')
+            axs[0].axhline(metricas['gran_media_x_bar_bar'], color='blue', linestyle='--', label=f"LC = {metricas['gran_media_x_bar_bar']}")
+            axs[0].axhline(metricas['lcs_x'], color='red', linestyle=':', label=f"LCS = {metricas['lcs_x']}")
+            axs[0].axhline(metricas['lci_x'], color='red', linestyle=':', label=f"LCI = {metricas['lci_x']}")
+            axs[0].set_title('Gráfica de Control X̄ (Promedios)', fontsize=14)
+            axs[0].set_ylabel('Promedio de Muestra'); axs[0].legend(); axs[0].grid(True)
 
-            # 3. Gráfica de Control X-R
-            fig, axs = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
-            rangos_clase = np.array([float(c.split('-')[1]) - float(c.split('-')[0]) for c in clases])
-            
-            # Gráfica X
-            media_x = np.mean(puntos_medios); std_x = np.std(puntos_medios)
-            axs[0].plot(clases, puntos_medios, 'o-', color='darkcyan', label='Promedio de Clase')
-            axs[0].axhline(media_x, color='blue', linestyle='--', label='Línea Central (Media)')
-            axs[0].axhline(media_x + 3 * std_x, color='red', linestyle=':', label='LCS')
-            axs[0].axhline(media_x - 3 * std_x, color='red', linestyle=':', label='LCI')
-            axs[0].set_title('Gráfica de Control X (Promedios)'); axs[0].set_ylabel('Valor Promedio'); axs[0].legend()
-            
             # Gráfica R
-            media_r = np.mean(rangos_clase)
-            axs[1].plot(clases, rangos_clase, 'o-', color='orangered', label='Rango de Clase')
-            axs[1].axhline(media_r, color='blue', linestyle='--', label='Línea Central (Rango Medio)')
-            axs[1].set_title('Gráfica de Control R (Rangos)'); axs[1].set_ylabel('Rango'); axs[1].legend()
-            plt.xlabel('Clases'); plt.xticks(rotation=45); plt.tight_layout(); graficas['grafica_xr'] = guardar_grafica()
-            # ### FIN DE NUEVA LÓGICA ###
+            axs[1].plot(muestras, datos_grafica['rangos'], 'o-', color='orangered', label='Rango de Muestra (R)')
+            axs[1].axhline(metricas['rango_promedio_r_bar'], color='blue', linestyle='--', label=f"LC = {metricas['rango_promedio_r_bar']}")
+            axs[1].axhline(metricas['lcs_r'], color='red', linestyle=':', label=f"LCS = {metricas['lcs_r']}")
+            axs[1].axhline(metricas['lci_r'], color='red', linestyle=':', label=f"LCI = {metricas['lci_r']}")
+            axs[1].set_title('Gráfica de Control R (Rangos)', fontsize=14)
+            axs[1].set_ylabel('Rango de Muestra'); axs[1].legend(); axs[1].grid(True)
+            
+            plt.xlabel('Número de Muestra', fontsize=12); plt.xticks(muestras)
+            plt.tight_layout(pad=3.0)
+            fig.suptitle('Gráficas de Control X-bar y R', fontsize=16, weight='bold')
+            graficas['grafica_xr'] = guardar_grafica()
             
         return graficas
 
@@ -160,33 +166,19 @@ def procesar_datos():
         es_agrupado = data.get('es_agrupado', False)
 
         if es_agrupado:
-            clases = data.get('clases', [])
-            frecuencias = [int(f) for f in data.get('frecuencias', [])]
+            # Nueva lógica para procesar tabla de subgrupos
+            tabla_texto = data.get('datos', '')
+            df = pd.read_csv(io.StringIO(tabla_texto), header=None, delim_whitespace=True, dtype=float)
+            df.dropna(axis=1, how='all', inplace=True) # Eliminar columnas vacías si las hay
             
-            # ### INICIO DE NUEVOS CÁLCULOS PARA DATOS AGRUPADOS ###
-            limites_inf = [float(c.split('-')[0]) for c in clases]
-            limites_sup = [float(c.split('-')[1]) for c in clases]
-            valor_min = min(limites_inf)
-            valor_max = max(limites_sup)
-            rango_total = valor_max - valor_min
-            num_clases = len(clases)
-            amplitud_promedio = rango_total / num_clases
-            
-            parametros = {
-                'valor_maximo': round(valor_max, 4), 'valor_minimo': round(valor_min, 4),
-                'rango': round(rango_total, 4), 'num_clases': num_clases,
-                'amplitud': round(amplitud_promedio, 4)
-            }
-            # ### FIN DE NUEVOS CÁLCULOS ###
-
-            estadisticas = analizador.calcular_estadisticas_agrupadas(clases, frecuencias)
-            graficas = analizador.generar_graficas(None, tipo='agrupado', clases=clases, frecuencias=frecuencias)
-            resultado = {'tipo': 'agrupado', 'estadisticas': estadisticas, 'graficas': graficas, 'parametros_agrupacion': parametros}
+            subgrupos_data = analizador.calcular_analisis_subgrupos(df)
+            graficas = analizador.generar_graficas(tipo='agrupado', subgrupos_data=subgrupos_data)
+            resultado = {'tipo': 'agrupado', 'metricas_control': subgrupos_data['metricas'], 'graficas': graficas}
         else:
             datos = [float(d) for d in data.get('datos', [])]
             estadisticas = analizador.calcular_estadisticas_basicas(datos)
             tabla_frecuencias = analizador.crear_tabla_frecuencias(datos)
-            graficas = analizador.generar_graficas(datos, tipo='desagrupado', tabla_frecuencias=tabla_frecuencias)
+            graficas = analizador.generar_graficas(datos=datos, tipo='desagrupado', tabla_frecuencias=tabla_frecuencias)
             resultado = {'tipo': 'desagrupado', 'estadisticas': estadisticas, 'tabla_frecuencias': tabla_frecuencias, 'graficas': graficas}
         
         return jsonify({'status': 'success', 'resultado': resultado})
@@ -213,6 +205,7 @@ html_template = """
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
         input, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+        textarea { font-family: 'Courier New', Courier, monospace; line-height: 1.5; }
         input:focus, textarea:focus { outline: none; border-color: #4c68d7; box-shadow: 0 0 0 2px rgba(76, 104, 215, 0.2); }
         .radio-group { display: flex; gap: 20px; margin-top: 10px; }
         .radio-item { display: flex; align-items: center; gap: 8px; }
@@ -224,7 +217,8 @@ html_template = """
         .hidden { display: none; }
         .results { background: #fafafa; border-radius: 8px; padding: 25px; margin-top: 20px; border: 1px solid #e8e8e8;}
         .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #4c68d7; padding-bottom: 10px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .results h3 { color: #333; margin-top: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-item { background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4c68d7; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-label { font-weight: 600; color: #666; font-size: 0.9em; text-transform: uppercase; }
         .stat-value { font-size: 1.4em; font-weight: 700; color: #333; margin-top: 5px; }
@@ -238,28 +232,22 @@ html_template = """
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4c68d7; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .alert-error { background: #fff0f0; border-left: 4px solid #e74c3c; color: #c0392b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .clase-freq-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
-        .add-clase-btn { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; margin-top: 10px; }
-        .remove-clase-btn { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 1; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1>📊 Programa de Análisis Estadístico</h1>
-            <p>Análisis de datos con medidas de tendencia central, dispersión y gráficas</p>
-        </header>
+        <header class="header"><h1>📊 Programa de Análisis Estadístico</h1><p>Análisis de datos descriptivos y de control de procesos</p></header>
         <div class="content">
             <div class="step" id="step1">
                 <h3>1. Configuración del Análisis</h3>
-                <div class="form-group"><label>¿Los datos son de una muestra o población?</label><div class="radio-group"><div class="radio-item"><input type="radio" id="muestral" name="tipo_datos" value="muestral" checked><label for="muestral">Muestral</label></div><div class="radio-item"><input type="radio" id="poblacional" name="tipo_datos" value="poblacional"><label for="poblacional">Poblacional</label></div></div></div>
-                <div class="form-group"><label>¿Los datos están agrupados o desagrupados?</label><div class="radio-group"><div class="radio-item"><input type="radio" id="desagrupados" name="agrupamiento" value="desagrupados" checked><label for="desagrupados">Desagrupados</label></div><div class="radio-item"><input type="radio" id="agrupados" name="agrupamiento" value="agrupados"><label for="agrupados">Agrupados</label></div></div></div>
+                <div class="form-group"><label>¿Los datos son de una muestra o población? (Aplica a análisis Desagrupado)</label><div class="radio-group"><div class="radio-item"><input type="radio" id="muestral" name="tipo_datos" value="muestral" checked><label for="muestral">Muestral</label></div><div class="radio-item"><input type="radio" id="poblacional" name="tipo_datos" value="poblacional"><label for="poblacional">Poblacional</label></div></div></div>
+                <div class="form-group"><label>Selecciona el tipo de análisis:</label><div class="radio-group"><div class="radio-item"><input type="radio" id="desagrupados" name="agrupamiento" value="desagrupados" checked><label for="desagrupados">Análisis Descriptivo (Desagrupado)</label></div><div class="radio-item"><input type="radio" id="agrupados" name="agrupamiento" value="agrupados"><label for="agrupados">Gráficas de Control X-R (Subgrupos)</label></div></div></div>
                 <button class="btn" onclick="configurarAnalisis()">Continuar</button>
             </div>
             <div class="step hidden" id="step2">
                 <h3>2. Ingreso de Datos</h3>
-                <div id="datos-desagrupados"><div class="form-group"><label for="datos-input">Ingresa los datos separados por comas o espacios:</label><textarea id="datos-input" rows="4" placeholder="Ej: 12, 15 18.5, 20 22"></textarea></div></div>
-                <div id="datos-agrupados" class="hidden"><div class="form-group"><label>Clases y Frecuencias:</label><div id="clases-container"><div class="clase-freq-item"><input type="text" placeholder="Clase (ej: 10-20)" class="clase-input"><input type="number" placeholder="Frecuencia" class="freq-input" min="1"><button type="button" class="remove-clase-btn" onclick="removerClase(this)">×</button></div></div><button type="button" class="add-clase-btn" onclick="agregarClase()">+ Agregar Clase</button></div></div>
+                <div id="datos-desagrupados"><div class="form-group"><label for="datos-input-desagrupado">Ingresa los datos separados por comas o espacios:</label><textarea id="datos-input-desagrupado" rows="6" placeholder="Ej: 12, 15 18.5, 20 22"></textarea></div></div>
+                <div id="datos-agrupados" class="hidden"><div class="form-group"><label for="datos-input-agrupado">Pega tu tabla de datos aquí (filas=muestras, columnas=observaciones):</label><textarea id="datos-input-agrupado" rows="10" placeholder="4.85  4.861 4.86  4.858 4.862\n4.871 4.88  4.861 4.864 4.872\n..."></textarea></div></div>
                 <button class="btn" onclick="procesarDatos()">Analizar Datos</button>
             </div>
             <div id="loading" class="loading hidden"><div class="spinner"></div></div>
@@ -292,16 +280,14 @@ html_template = """
                 let datosParaEnviar = { es_muestral: esMuestral, es_agrupado: esAgrupado };
                 
                 if (esAgrupado) {
-                    const clases = Array.from(document.querySelectorAll('.clase-input')).map(i => i.value.trim()).filter(Boolean);
-                    const frecuencias = Array.from(document.querySelectorAll('.freq-input')).map(i => i.value).filter(Boolean);
-                    if (clases.length === 0 || clases.length !== frecuencias.length) { throw new Error('Asegúrate de que cada clase tenga una frecuencia válida.'); }
-                    datosParaEnviar.clases = clases;
-                    datosParaEnviar.frecuencias = frecuencias;
+                    const datosTexto = document.getElementById('datos-input-agrupado').value;
+                    if (datosTexto.trim().length === 0) throw new Error('El campo de datos para subgrupos no puede estar vacío.');
+                    datosParaEnviar.datos = datosTexto;
                 } else {
-                    const datosTexto = document.getElementById('datos-input').value;
+                    const datosTexto = document.getElementById('datos-input-desagrupado').value;
                     const datosLimpios = datosTexto.trim().replace(/[,\\s]+/g, ',');
                     const datos = datosLimpios.split(',').map(d => parseFloat(d)).filter(d => !isNaN(d));
-                    if (datos.length < 2) { throw new Error('Se requieren al menos dos datos numéricos válidos.'); }
+                    if (datos.length < 2) throw new Error('Se requieren al menos dos datos numéricos válidos.');
                     datosParaEnviar.datos = datos;
                 }
                 
@@ -322,35 +308,29 @@ html_template = """
         function mostrarResultados(resultado) {
             let html = `<div class="results-header"><h3>📈 Resultados del Análisis</h3><button class="btn btn-secondary" onclick="nuevoAnalisis()">Nuevo Análisis</button></div>`;
             
-            // ### INICIO DE CAMBIOS EN LA VISUALIZACIÓN ###
-            // Parámetros de Agrupación (si existen)
-            if (resultado.parametros_agrupacion) {
-                html += '<h3>Parámetros de la Tabla</h3><div class="stats-grid">';
-                for (const [key, value] of Object.entries(resultado.parametros_agrupacion)) {
+            if (resultado.tipo === 'agrupado') {
+                html += '<h3>Métricas del Gráfico de Control</h3><div class="stats-grid">';
+                for (const [key, value] of Object.entries(resultado.metricas_control)) {
                     html += `<div class="stat-item"><div class="stat-label">${traducirLabel(key)}</div><div class="stat-value">${value}</div></div>`;
                 }
                 html += '</div>';
-            }
-
-            // Estadísticas Principales
-            html += `<h3>${resultado.tipo === 'agrupado' ? 'Medidas Descriptivas (Agrupados)' : 'Estadísticas Descriptivas'}</h3><div class="stats-grid">`;
-            for (const [key, value] of Object.entries(resultado.estadisticas)) {
-                html += `<div class="stat-item"><div class="stat-label">${traducirLabel(key)}</div><div class="stat-value">${Array.isArray(value) ? value.join(', ') : value}</div></div>`;
-            }
-            html += '</div>';
-            
-            // Tabla de Frecuencias (solo para desagrupados)
-            if (resultado.tabla_frecuencias) {
-                html += '<h3>📊 Tabla de Frecuencias</h3><div class="table-container"><table><thead><tr><th>Valor</th><th>Frecuencia</th><th>F. Relativa</th><th>F. Acumulada</th><th>F. Rel. Acum.</th></tr></thead><tbody>';
-                resultado.tabla_frecuencias.forEach(fila => { html += `<tr><td>${fila.valor}</td><td>${fila.frecuencia}</td><td>${fila.frecuencia_relativa}</td><td>${fila.frecuencia_acumulada}</td><td>${fila.frecuencia_relativa_acumulada}</td></tr>`; });
-                html += '</tbody></table></div>';
+            } else {
+                html += `<h3>Estadísticas Descriptivas</h3><div class="stats-grid">`;
+                for (const [key, value] of Object.entries(resultado.estadisticas)) {
+                    html += `<div class="stat-item"><div class="stat-label">${traducirLabel(key)}</div><div class="stat-value">${Array.isArray(value) ? value.join(', ') : value}</div></div>`;
+                }
+                html += '</div>';
+                if (resultado.tabla_frecuencias) {
+                    html += '<h3>📊 Tabla de Frecuencias</h3><div class="table-container"><table><thead><tr><th>Valor</th><th>Frecuencia</th><th>F. Relativa</th><th>F. Acumulada</th><th>F. Rel. Acum.</th></tr></thead><tbody>';
+                    resultado.tabla_frecuencias.forEach(fila => { html += `<tr><td>${fila.valor}</td><td>${fila.frecuencia}</td><td>${fila.frecuencia_relativa}</td><td>${fila.frecuencia_acumulada}</td><td>${fila.frecuencia_relativa_acumulada}</td></tr>`; });
+                    html += '</tbody></table></div>';
+                }
             }
             
-            // Gráficas
             if (resultado.graficas) {
                 html += '<h3>🎨 Gráficas Visuales</h3>';
                 const graficasOrden = resultado.tipo === 'agrupado' 
-                    ? ['histograma', 'boxplot', 'grafica_xr'] 
+                    ? ['grafica_xr'] 
                     : ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot'];
                 
                 graficasOrden.forEach(key => {
@@ -362,42 +342,32 @@ html_template = """
                     html += `<p style="text-align:center; margin-top:15px;"><strong>Análisis de Sesgo Visual:</strong> La distribución parece tener un sesgo hacia la ${resultado.graficas.sesgo_visual}.</p>`;
                 }
             }
-            // ### FIN DE CAMBIOS ###
-            
             document.getElementById('contenido-resultados').innerHTML = html;
         }
         
         function nuevoAnalisis() {
             document.getElementById('resultados').classList.add('hidden');
             document.getElementById('step2').classList.add('hidden');
-            document.getElementById('datos-input').value = '';
-            const clasesContainer = document.getElementById('clases-container');
-            while (clasesContainer.children.length > 1) { clasesContainer.removeChild(clasesContainer.lastChild); }
-            if (clasesContainer.children.length > 0) { clasesContainer.querySelector('.clase-input').value = ''; clasesContainer.querySelector('.freq-input').value = ''; }
+            document.getElementById('datos-input-desagrupado').value = '';
+            document.getElementById('datos-input-agrupado').value = '';
             document.getElementById('step1').classList.remove('hidden');
-        }
-
-        function agregarClase() {
-            const container = document.getElementById('clases-container');
-            const div = document.createElement('div');
-            div.className = 'clase-freq-item';
-            div.innerHTML = `<input type="text" placeholder="Clase (ej: 10-20)" class="clase-input"><input type="number" placeholder="Frecuencia" class="freq-input" min="1"><button type="button" class="remove-clase-btn" onclick="removerClase(this)">×</button>`;
-            container.appendChild(div);
-        }
-
-        function removerClase(btn) {
-            if (btn.parentElement.parentElement.children.length > 1) btn.parentElement.remove();
         }
 
         function traducirLabel(key) {
             const traducciones = {
+                // Desagrupado
                 'media': 'Media', 'mediana': 'Mediana', 'moda': 'Moda', 'varianza': 'Varianza', 'desviacion_estandar': 'Desviación Estándar',
-                'valor_minimo': 'Mínimo', 'valor_maximo': 'Máximo', 'rango': 'Rango', 'sesgo': 'Coef. de Sesgo', 'curtosis': 'Coef. de Curtosis',
-                'mediana_aproximada': 'Clase de la Mediana', 'num_clases': 'Nº de Clases', 'amplitud': 'Amplitud de Clase',
+                'valor_minimo': 'Mínimo', 'valor_maximo': 'Máximo', 'rango': 'Rango',
+                // Subgrupos (X-R)
+                'numero_muestras_k': 'Nº de Muestras (k)', 'tamano_muestra_n': 'Tamaño de Muestra (n)',
+                'gran_media_x_bar_bar': 'Gran Media (X̿)', 'rango_promedio_r_bar': 'Rango Promedio (R̄)',
+                'lcs_x': 'LCS (Gráfica X̄)', 'lci_x': 'LCI (Gráfica X̄)',
+                'lcs_r': 'LCS (Gráfica R)', 'lci_r': 'LCI (Gráfica R)',
+                // Gráficas
                 'histograma': 'Histograma', 'boxplot': 'Diagrama de Caja y Bigotes', 'frecuencia_relativa': 'Gráf. Frecuencia Relativa',
                 'frecuencia_acumulada': 'Gráf. Frecuencia Acumulada', 'grafica_xr': 'Gráfica de Control X-R'
             };
-            return traducciones[key] || key.replace('_', ' ');
+            return traducciones[key] || key.replace(/_/g, ' ');
         }
     </script>
 </body>
