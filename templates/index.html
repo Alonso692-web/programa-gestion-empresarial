@@ -1,54 +1,295 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programa de Análisis Estadístico</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #4c68d7 0%, #6e48aa 100%); color: white; padding: 25px 30px; text-align: center; }
-        .header h1 { font-size: 2em; margin-bottom: 5px; }
-        .header p { font-size: 1.1em; margin-bottom: 15px; opacity: 0.9; }
-        .developers { background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 8px; margin-top: 15px; }
-        .developers h4 { font-size: 1em; margin-bottom: 8px; color: #ffffff; opacity: 0.9; }
-        .developers-list { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .developer { font-size: 0.95em; color: #ffffff; opacity: 0.95; }
-        .content { padding: 30px; }
-        .step { background: #fafafa; border-radius: 8px; padding: 25px; margin-bottom: 20px; border: 1px solid #e8e8e8; }
-        .step h3 { color: #333; margin-bottom: 20px; font-size: 1.25em; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
-        textarea { font-family: 'Courier New', Courier, monospace; line-height: 1.5; }
-        input:focus, textarea:focus { outline: none; border-color: #4c68d7; box-shadow: 0 0 0 2px rgba(76, 104, 215, 0.2); }
-        .radio-group { display: flex; gap: 20px; margin-top: 10px; }
-        .radio-item { display: flex; align-items: center; gap: 8px; }
-        .radio-item input[type="radio"] { width: auto; }
-        .btn { background: #4c68d7; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
-        .btn:hover { background: #3a50a8; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        .hidden { display: none; }
-        .results { background: #fafafa; border-radius: 8px; padding: 25px; margin-top: 20px; border: 1px solid #e8e8e8;}
-        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #4c68d7; padding-bottom: 10px; }
-        .results h3 { color: #333; margin-top: 20px; margin-bottom: 15px; font-size: 1.2em; border-left: 3px solid #6e48aa; padding-left: 10px;}
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-item { background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4c68d7; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stat-label { font-weight: 600; color: #666; font-size: 0.9em; text-transform: uppercase; }
-        .stat-value { font-size: 1.4em; font-weight: 700; color: #333; margin-top: 5px; }
-        .table-container { overflow-x: auto; margin: 20px 0; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
-        th { background: #f1f1f1; color: #333; font-weight: 600; }
-        .chart-container { margin: 30px 0; text-align: center; }
-        .chart-container h4 { margin-bottom: 15px; color: #444; }
-        .chart-container img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .alert-error { background: #fff0f0; border-left: 4px solid #e74c3c; color: #c0392b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        @media (max-width: 768px) { .developers-list { flex-direction: column; align-items: center; gap: 10px; } .radio-group { flex-direction: column; gap: 10px; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4c68d7 0%, #6e48aa 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .developers {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .developers h4 {
+            font-size: 1em;
+            margin-bottom: 8px;
+            color: #ffffff;
+            opacity: 0.9;
+        }
+
+        .developers-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .developer {
+            font-size: 0.95em;
+            color: #ffffff;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .step {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .step h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.25em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea {
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.5;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4c68d7;
+            box-shadow: 0 0 0 2px rgba(76, 104, 215, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-item input[type="radio"] {
+            width: auto;
+        }
+
+        .btn {
+            background: #4c68d7;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #3a50a8;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .results {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4c68d7;
+            padding-bottom: 10px;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-left: 3px solid #6e48aa;
+            padding-left: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4c68d7;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f1f1f1;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .chart-container h4 {
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-error {
+            background: #fff0f0;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .developers-list {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -65,20 +306,45 @@
         <div class="content">
             <div class="step" id="step1">
                 <h3>1. Configuración del Análisis</h3>
-                <div class="form-group"><label>¿Los datos son de una muestra o población?</label><div class="radio-group"><div class="radio-item"><input type="radio" id="muestral" name="tipo_datos" value="muestral" checked><label for="muestral">Muestral</label></div><div class="radio-item"><input type="radio" id="poblacional" name="tipo_datos" value="poblacional"><label for="poblacional">Poblacional</label></div></div></div>
-                <div class="form-group"><label>Selecciona el tipo de análisis:</label><div class="radio-group"><div class="radio-item"><input type="radio" id="desagrupados" name="agrupamiento" value="desagrupados" checked><label for="desagrupados">Análisis Descriptivo (Individual)</label></div><div class="radio-item"><input type="radio" id="agrupados" name="agrupamiento" value="agrupados"><label for="agrupados">Gráficas de Control X-R (Subgrupos)</label></div></div></div>
+                <div class="form-group"><label>¿Los datos son de una muestra o población?</label>
+                    <div class="radio-group">
+                        <div class="radio-item"><input type="radio" id="muestral" name="tipo_datos" value="muestral"
+                                checked><label for="muestral">Muestral</label></div>
+                        <div class="radio-item"><input type="radio" id="poblacional" name="tipo_datos"
+                                value="poblacional"><label for="poblacional">Poblacional</label></div>
+                    </div>
+                </div>
+                <div class="form-group"><label>Selecciona el tipo de análisis:</label>
+                    <div class="radio-group">
+                        <div class="radio-item"><input type="radio" id="desagrupados" name="agrupamiento"
+                                value="desagrupados" checked><label for="desagrupados">Datos desagrupados</label></div>
+                        <div class="radio-item"><input type="radio" id="agrupados" name="agrupamiento"
+                                value="agrupados"><label for="agrupados">Datos agrupados</label></div>
+                    </div>
+                </div>
                 <button class="btn" onclick="configurarAnalisis()">Continuar</button>
             </div>
             <div class="step hidden" id="step2">
                 <h3>2. Ingreso de Datos</h3>
-                <div id="datos-desagrupados"><div class="form-group"><label for="datos-input-desagrupado">Ingresa los datos separados por comas o espacios:</label><textarea id="datos-input-desagrupado" rows="6" placeholder="Ej: 12, 15 18.5, 20 22"></textarea></div></div>
-                <div id="datos-agrupados" class="hidden"><div class="form-group"><label for="datos-input-agrupado">Pega tu tabla de datos aquí (filas=muestras, columnas=observaciones):</label><textarea id="datos-input-agrupado" rows="10" placeholder="4.85  4.861 4.86  4.858 4.862
+                <div id="datos-desagrupados">
+                    <div class="form-group"><label for="datos-input-desagrupado">Ingresa los datos separados por comas o
+                            espacios:</label><textarea id="datos-input-desagrupado" rows="6"
+                            placeholder="Ej: 12, 15 18.5, 20 22"></textarea></div>
+                </div>
+                <div id="datos-agrupados" class="hidden">
+                    <div class="form-group"><label for="datos-input-agrupado">Pega tu tabla de datos aquí
+                            (filas=muestras, columnas=observaciones):</label><textarea id="datos-input-agrupado"
+                            rows="10" placeholder="4.85  4.861 4.86  4.858 4.862
 4.871 4.88  4.861 4.864 4.872
-..."></textarea></div></div>
+..."></textarea></div>
+                </div>
                 <button class="btn" onclick="procesarDatos()">Analizar Datos</button>
             </div>
-            <div id="resultados" class="results hidden"><div id="contenido-resultados"></div></div>
-            <div class="bottom-actions" style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #e8e8e8;">
+            <div id="resultados" class="results hidden">
+                <div id="contenido-resultados"></div>
+            </div>
+            <div class="bottom-actions"
+                style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #e8e8e8;">
                 <button class="btn btn-secondary" onclick="nuevoAnalisis()">🔄 Nuevo Análisis</button>
             </div>
         </div>
@@ -117,7 +383,7 @@
                 const response = await fetch('/procesar_datos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datosParaEnviar) });
                 if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.message || `Error del servidor: ${response.status}`); }
                 const result = await response.json();
-                if (result.status === 'success') { mostrarResultados(result.resultado); } 
+                if (result.status === 'success') { mostrarResultados(result.resultado); }
                 else { throw new Error(result.message); }
             } catch (error) {
                 contenidoResultados.innerHTML = `<div class="alert-error"><strong>Error:</strong> ${error.message}</div>`;
@@ -134,31 +400,31 @@
                 html += '</div>';
             }
             if (resultado.estadisticas) {
-                html += `<h3>Estadísticas Descriptivas (sobre todos los datos)</h3><div class="stats-grid">`;
+                html += `<h3>Estadísticas Descriptivas</h3><div class="stats-grid">`;
                 for (const [key, value] of Object.entries(resultado.estadisticas)) {
                     html += `<div class="stat-item"><div class="stat-label">${traducirLabel(key)}</div><div class="stat-value">${Array.isArray(value) ? value.join(', ') : value}</div></div>`;
                 }
                 html += '</div>';
             }
             if (resultado.tabla_frecuencias && resultado.tabla_frecuencias.length > 1) {
-                html += '<h3>Tabla de Frecuencias (sobre todos los datos)</h3><div class="table-container"><table><thead><tr><th>Valor</th><th>Frecuencia</th><th>F. Relativa</th><th>F. Acumulada</th><th>F. Rel. Acum.</th></tr></thead><tbody>';
+                html += '<h3>Tabla de Frecuencias</h3><div class="table-container"><table><thead><tr><th>Valor</th><th>Frecuencia</th><th>F. Relativa</th><th>F. Acumulada</th><th>F. Rel. Acum.</th></tr></thead><tbody>';
                 resultado.tabla_frecuencias.forEach(fila => { html += `<tr><td>${fila.valor}</td><td>${fila.frecuencia}</td><td>${fila.frecuencia_relativa}</td><td>${fila.frecuencia_acumulada}</td><td>${fila.frecuencia_relativa_acumulada}</td></tr>`; });
                 html += '</tbody></table></div>';
             }
             if (resultado.graficas) {
                 html += '<h3>🎨 Gráficas Visuales</h3>';
-                const graficasOrden = resultado.tipo === 'agrupado' 
-                    ? ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot', 'grafica_xr'] 
-                    : ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot'];
+                const graficasOrden = resultado.tipo === 'agrupado'
+                    ? ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot', 'grafica_xr']
+                    : ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa'];
                 graficasOrden.forEach(key => {
-                    if(resultado.graficas[key]) {
+                    if (resultado.graficas[key]) {
                         html += `<div class="chart-container"><h4>${traducirLabel(key)}</h4><img src="data:image/png;base64,${resultado.graficas[key]}" alt="${traducirLabel(key)}"></div>`;
                     }
                 });
             }
             document.getElementById('contenido-resultados').innerHTML = html;
         }
-        
+
         function nuevoAnalisis() {
             document.getElementById('resultados').classList.add('hidden');
             document.getElementById('step2').classList.add('hidden');
@@ -170,20 +436,20 @@
         // ### CAMBIO INICIA: Nuevas etiquetas para las métricas ###
         function traducirLabel(key) {
             const traducciones = {
-                'media': 'Media', 'mediana': 'Mediana', 'moda': 'Moda', 'varianza': 'Varianza', 
-                'desviacion_estandar': 'Desviación Estándar', 'valor_minimo': 'Mínimo', 
+                'media': 'Media', 'mediana': 'Mediana', 'moda': 'Moda', 'varianza': 'Varianza',
+                'desviacion_estandar': 'Desviación Estándar', 'valor_minimo': 'Mínimo',
                 'valor_maximo': 'Máximo', 'rango': 'Rango',
                 'sesgo': 'Coeficiente de Sesgo',
                 'interpretacion_sesgo': 'Interpretación del Sesgo',
                 'sesgo_estandarizado': 'Sesgo Estandarizado',
-                'curtosis': 'Coeficiente de Curtosis (g2)',
+                'curtosis': 'Coeficiente de Curtosis',
                 'interpretacion_curtosis': 'Interpretación de Curtosis',
                 'numero_muestras_k': 'Nº de Muestras (k)', 'tamano_muestra_n': 'Tamaño de Muestra (n)',
                 'gran_media_x_bar_bar': 'Gran Media (X̿)', 'rango_promedio_r_bar': 'Rango Promedio (R̄)',
                 'lcs_x': 'LCS (Gráfica X̄)', 'lci_x': 'LCI (Gráfica X̄)',
                 'lcs_r': 'LCS (Gráfica R)', 'lci_r': 'LCI (Gráfica R)',
-                'histograma': 'Histograma de Datos Individuales', 'boxplot': 'Diagrama de Caja de Datos Individuales', 
-                'frecuencia_relativa': 'Gráf. Frecuencia Relativa', 'frecuencia_acumulada': 'Gráf. Frecuencia Acumulada', 
+                'histograma': 'Histograma de Datos', 'boxplot': 'Diagrama de Caja',
+                'frecuencia_relativa': 'Gráf. Frecuencia Relativa', 'frecuencia_acumulada': 'Gráf. Frecuencia Acumulada',
                 'grafica_xr': 'Gráfica de Control X-R'
             };
             return traducciones[key] || key.replace(/_/g, ' ');
@@ -191,4 +457,5 @@
         // ### CAMBIO TERMINA ###
     </script>
 </body>
+
 </html>
