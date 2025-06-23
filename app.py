@@ -397,8 +397,8 @@ html_template = """
             if (resultado.graficas) {
                 html += '<h3>🎨 Gráficas Visuales</h3>';
                 const graficasOrden = resultado.tipo === 'agrupado' 
-                    ? ['histograma', 'boxplot', 'grafica_xr', 'frecuencia_acumulada', 'frecuencia_relativa'] 
-                    : ['histograma', 'boxplot', 'frecuencia_acumulada', 'frecuencia_relativa'];
+                    ? ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot', 'grafica_xr'] 
+                    : ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot'];
                 graficasOrden.forEach(key => {
                     if(resultado.graficas[key]) {
                         html += `<div class="chart-container"><h4>${traducirLabel(key)}</h4><img src="data:image/png;base64,${resultado.graficas[key]}" alt="${traducirLabel(key)}"></div>`;
