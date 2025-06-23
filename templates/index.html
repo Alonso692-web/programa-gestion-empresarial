@@ -33,24 +33,20 @@
         .hidden { display: none; }
         .results { background: #fafafa; border-radius: 8px; padding: 25px; margin-top: 20px; border: 1px solid #e8e8e8;}
         .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #4c68d7; padding-bottom: 10px; }
-        .results h3 { color: #333; margin-top: 20px; }
+        .results h3 { color: #333; margin-top: 20px; margin-bottom: 15px; font-size: 1.2em; border-left: 3px solid #6e48aa; padding-left: 10px;}
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-item { background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4c68d7; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-label { font-weight: 600; color: #666; font-size: 0.9em; text-transform: uppercase; }
         .stat-value { font-size: 1.4em; font-weight: 700; color: #333; margin-top: 5px; }
         .table-container { overflow-x: auto; margin: 20px 0; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
         th { background: #f1f1f1; color: #333; font-weight: 600; }
         .chart-container { margin: 30px 0; text-align: center; }
+        .chart-container h4 { margin-bottom: 15px; color: #444; }
         .chart-container img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-
         .alert-error { background: #fff0f0; border-left: 4px solid #e74c3c; color: #c0392b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        
-        @media (max-width: 768px) {
-            .developers-list { flex-direction: column; align-items: center; gap: 10px; }
-            .radio-group { flex-direction: column; gap: 10px; }
-        }
+        @media (max-width: 768px) { .developers-list { flex-direction: column; align-items: center; gap: 10px; } .radio-group { flex-direction: column; gap: 10px; } }
     </style>
 </head>
 <body>
@@ -69,8 +65,8 @@
         <div class="content">
             <div class="step" id="step1">
                 <h3>1. Configuración del Análisis</h3>
-                <div class="form-group"><label>¿Los datos son de una muestra o población? (Aplica a análisis Desagrupado)</label><div class="radio-group"><div class="radio-item"><input type="radio" id="muestral" name="tipo_datos" value="muestral" checked><label for="muestral">Muestral</label></div><div class="radio-item"><input type="radio" id="poblacional" name="tipo_datos" value="poblacional"><label for="poblacional">Poblacional</label></div></div></div>
-                <div class="form-group"><label>Selecciona el tipo de análisis:</label><div class="radio-group"><div class="radio-item"><input type="radio" id="desagrupados" name="agrupamiento" value="desagrupados" checked><label for="desagrupados">Análisis Descriptivo (Desagrupado)</label></div><div class="radio-item"><input type="radio" id="agrupados" name="agrupamiento" value="agrupados"><label for="agrupados">Gráficas de Control X-R (Subgrupos)</label></div></div></div>
+                <div class="form-group"><label>¿Los datos son de una muestra o población?</label><div class="radio-group"><div class="radio-item"><input type="radio" id="muestral" name="tipo_datos" value="muestral" checked><label for="muestral">Muestral</label></div><div class="radio-item"><input type="radio" id="poblacional" name="tipo_datos" value="poblacional"><label for="poblacional">Poblacional</label></div></div></div>
+                <div class="form-group"><label>Selecciona el tipo de análisis:</label><div class="radio-group"><div class="radio-item"><input type="radio" id="desagrupados" name="agrupamiento" value="desagrupados" checked><label for="desagrupados">Análisis Descriptivo (Individual)</label></div><div class="radio-item"><input type="radio" id="agrupados" name="agrupamiento" value="agrupados"><label for="agrupados">Gráficas de Control X-R (Subgrupos)</label></div></div></div>
                 <button class="btn" onclick="configurarAnalisis()">Continuar</button>
             </div>
             <div class="step hidden" id="step2">
@@ -81,14 +77,11 @@
 ..."></textarea></div></div>
                 <button class="btn" onclick="procesarDatos()">Analizar Datos</button>
             </div>
-
             <div id="resultados" class="results hidden"><div id="contenido-resultados"></div></div>
             <div class="bottom-actions" style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #e8e8e8;">
                 <button class="btn btn-secondary" onclick="nuevoAnalisis()">🔄 Nuevo Análisis</button>
             </div>
-            
         </div>
-        
     </div>
     <script>
         function configurarAnalisis() {
@@ -98,81 +91,70 @@
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
             document.getElementById('resultados').classList.add('hidden');
-            document.getElementById('loading').classList.add('hidden');
         }
 
         async function procesarDatos() {
             const resultadosDiv = document.getElementById('resultados');
             const contenidoResultados = document.getElementById('contenido-resultados');
-            
             resultadosDiv.classList.add('hidden');
-            contenidoResultados.innerHTML = '';
-            
+            contenidoResultados.innerHTML = '<p style="text-align:center;">Procesando, por favor espera...</p>';
+            resultadosDiv.classList.remove('hidden');
             try {
                 const esMuestral = document.querySelector('input[name="tipo_datos"]:checked').value === 'muestral';
                 const esAgrupado = document.querySelector('input[name="agrupamiento"]:checked').value === 'agrupados';
                 let datosParaEnviar = { es_muestral: esMuestral, es_agrupado: esAgrupado };
-                
                 if (esAgrupado) {
                     const datosTexto = document.getElementById('datos-input-agrupado').value;
                     if (datosTexto.trim().length === 0) throw new Error('El campo de datos para subgrupos no puede estar vacío.');
                     datosParaEnviar.datos = datosTexto;
                 } else {
                     const datosTexto = document.getElementById('datos-input-desagrupado').value;
-                    const datosLimpios = datosTexto.trim().replace(/[,\s]+/g, ',');
-                    const datos = datosLimpios.split(',').map(d => parseFloat(d)).filter(d => !isNaN(d));
+                    const datosLimpios = datosTexto.trim().replace(/[ ,;]+/g, ' ').split(' ');
+                    const datos = datosLimpios.map(d => parseFloat(d)).filter(d => !isNaN(d));
                     if (datos.length < 2) throw new Error('Se requieren al menos dos datos numéricos válidos.');
                     datosParaEnviar.datos = datos;
                 }
-                
                 const response = await fetch('/procesar_datos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datosParaEnviar) });
                 if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.message || `Error del servidor: ${response.status}`); }
                 const result = await response.json();
-                if (result.status === 'success') { mostrarResultados(result.resultado); resultadosDiv.classList.remove('hidden'); } 
+                if (result.status === 'success') { mostrarResultados(result.resultado); } 
                 else { throw new Error(result.message); }
-                
             } catch (error) {
                 contenidoResultados.innerHTML = `<div class="alert-error"><strong>Error:</strong> ${error.message}</div>`;
-                resultadosDiv.classList.remove('hidden');
             }
         }
 
         function mostrarResultados(resultado) {
-            let html = `<div class="results-header"><h3>📈 Resultados del Análisis</h3><button class="btn btn-secondary" onclick="nuevoAnalisis()">Nuevo Análisis</button></div>`;
-            
+            let html = `<div class="results-header"><h3>📈 Resultados del Análisis</h3></div>`;
             if (resultado.tipo === 'agrupado') {
                 html += '<h3>Métricas del Gráfico de Control</h3><div class="stats-grid">';
                 for (const [key, value] of Object.entries(resultado.metricas_control)) {
                     html += `<div class="stat-item"><div class="stat-label">${traducirLabel(key)}</div><div class="stat-value">${value}</div></div>`;
                 }
                 html += '</div>';
-            } else {
-                html += `<h3>Estadísticas Descriptivas</h3><div class="stats-grid">`;
+            }
+            if (resultado.estadisticas) {
+                html += `<h3>Estadísticas Descriptivas (sobre todos los datos)</h3><div class="stats-grid">`;
                 for (const [key, value] of Object.entries(resultado.estadisticas)) {
                     html += `<div class="stat-item"><div class="stat-label">${traducirLabel(key)}</div><div class="stat-value">${Array.isArray(value) ? value.join(', ') : value}</div></div>`;
                 }
                 html += '</div>';
-                if (resultado.tabla_frecuencias) {
-                    html += '<h3>📊 Tabla de Frecuencias</h3><div class="table-container"><table><thead><tr><th>Valor</th><th>Frecuencia</th><th>F. Relativa</th><th>F. Acumulada</th><th>F. Rel. Acum.</th></tr></thead><tbody>';
-                    resultado.tabla_frecuencias.forEach(fila => { html += `<tr><td>${fila.valor}</td><td>${fila.frecuencia}</td><td>${fila.frecuencia_relativa}</td><td>${fila.frecuencia_acumulada}</td><td>${fila.frecuencia_relativa_acumulada}</td></tr>`; });
-                    html += '</tbody></table></div>';
-                }
             }
-            
+            if (resultado.tabla_frecuencias && resultado.tabla_frecuencias.length > 1) {
+                html += '<h3>Tabla de Frecuencias (sobre todos los datos)</h3><div class="table-container"><table><thead><tr><th>Valor</th><th>Frecuencia</th><th>F. Relativa</th><th>F. Acumulada</th><th>F. Rel. Acum.</th></tr></thead><tbody>';
+                resultado.tabla_frecuencias.forEach(fila => { html += `<tr><td>${fila.valor}</td><td>${fila.frecuencia}</td><td>${fila.frecuencia_relativa}</td><td>${fila.frecuencia_acumulada}</td><td>${fila.frecuencia_relativa_acumulada}</td></tr>`; });
+                html += '</tbody></table></div>';
+            }
             if (resultado.graficas) {
                 html += '<h3>🎨 Gráficas Visuales</h3>';
                 const graficasOrden = resultado.tipo === 'agrupado' 
-                    ? ['grafica_xr'] 
-                    : ['histograma', 'frecuencia_acumulada', 'frecuencia_relativa', 'boxplot'];
-                
+                    ? ['histograma', 'boxplot', 'grafica_xr', 'frecuencia_acumulada', 'frecuencia_relativa'] 
+                    : ['histograma', 'boxplot', 'frecuencia_acumulada', 'frecuencia_relativa'];
                 graficasOrden.forEach(key => {
                     if(resultado.graficas[key]) {
                         html += `<div class="chart-container"><h4>${traducirLabel(key)}</h4><img src="data:image/png;base64,${resultado.graficas[key]}" alt="${traducirLabel(key)}"></div>`;
                     }
                 });
-                if (resultado.graficas.sesgo_visual) {
-                    html += `<p style="text-align:center; margin-top:15px;"><strong>Análisis de Sesgo Visual:</strong> La distribución parece tener un sesgo hacia la ${resultado.graficas.sesgo_visual}.</p>`;
-                }
             }
             document.getElementById('contenido-resultados').innerHTML = html;
         }
@@ -185,22 +167,28 @@
             document.getElementById('step1').classList.remove('hidden');
         }
 
+        // ### CAMBIO INICIA: Nuevas etiquetas para las métricas ###
         function traducirLabel(key) {
             const traducciones = {
-                // Desagrupado
-                'media': 'Media', 'mediana': 'Mediana', 'moda': 'Moda', 'varianza': 'Varianza', 'desviacion_estandar': 'Desviación Estándar',
-                'valor_minimo': 'Mínimo', 'valor_maximo': 'Máximo', 'rango': 'Rango',
-                // Subgrupos (X-R)
+                'media': 'Media', 'mediana': 'Mediana', 'moda': 'Moda', 'varianza': 'Varianza', 
+                'desviacion_estandar': 'Desviación Estándar', 'valor_minimo': 'Mínimo', 
+                'valor_maximo': 'Máximo', 'rango': 'Rango',
+                'sesgo': 'Coeficiente de Sesgo',
+                'interpretacion_sesgo': 'Interpretación del Sesgo',
+                'sesgo_estandarizado': 'Sesgo Estandarizado',
+                'curtosis': 'Coeficiente de Curtosis (g2)',
+                'interpretacion_curtosis': 'Interpretación de Curtosis',
                 'numero_muestras_k': 'Nº de Muestras (k)', 'tamano_muestra_n': 'Tamaño de Muestra (n)',
                 'gran_media_x_bar_bar': 'Gran Media (X̿)', 'rango_promedio_r_bar': 'Rango Promedio (R̄)',
                 'lcs_x': 'LCS (Gráfica X̄)', 'lci_x': 'LCI (Gráfica X̄)',
                 'lcs_r': 'LCS (Gráfica R)', 'lci_r': 'LCI (Gráfica R)',
-                // Gráficas
-                'histograma': 'Histograma', 'boxplot': 'Diagrama de Caja y Bigotes', 'frecuencia_relativa': 'Gráf. Frecuencia Relativa',
-                'frecuencia_acumulada': 'Gráf. Frecuencia Acumulada', 'grafica_xr': 'Gráfica de Control X-R'
+                'histograma': 'Histograma de Datos Individuales', 'boxplot': 'Diagrama de Caja de Datos Individuales', 
+                'frecuencia_relativa': 'Gráf. Frecuencia Relativa', 'frecuencia_acumulada': 'Gráf. Frecuencia Acumulada', 
+                'grafica_xr': 'Gráfica de Control X-R'
             };
             return traducciones[key] || key.replace(/_/g, ' ');
         }
+        // ### CAMBIO TERMINA ###
     </script>
 </body>
 </html>
