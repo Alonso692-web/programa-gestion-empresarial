@@ -219,7 +219,7 @@ def procesar_datos():
 
         if es_agrupado:
             tabla_texto = data.get('datos', '')
-            df = pd.read_csv(io.StringIO(tabla_texto), header=None, delim_whitespace=True, dtype=float, sep='\s+')
+            df = pd.read_csv(io.StringIO(tabla_texto), header=None, delim_whitespace=True, dtype=float)
             df.dropna(axis=1, how='all', inplace=True)
             subgrupos_data = analizador.calcular_analisis_subgrupos(df)
             datos_completos = df.values.flatten()
