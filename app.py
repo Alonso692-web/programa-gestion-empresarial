@@ -14,15 +14,29 @@ class AnalisisEstadistico:
     def __init__(self):
         self.es_muestral = True
         # Tabla de constantes para gráficos de control. Fuente: Estándares de Ingeniería.
+        # Soporta tamaños de muestra n=2 hasta n=20.
         self.CONTROL_CHART_CONSTANTS = {
-            2: {'A2': 1.880, 'D3': 0, 'D4': 3.267}, 3: {'A2': 1.023, 'D3': 0, 'D4': 2.574},
-            4: {'A2': 0.729, 'D3': 0, 'D4': 2.282}, 5: {'A2': 0.577, 'D3': 0, 'D4': 2.114},
-            6: {'A2': 0.483, 'D3': 0, 'D4': 2.004}, 7: {'A2': 0.419, 'D3': 0.076, 'D4': 1.924},
-            8: {'A2': 0.373, 'D3': 0.136, 'D4': 1.864}, 9: {'A2': 0.337, 'D3': 0.184, 'D4': 1.816},
-            10: {'A2': 0.308, 'D3': 0.223, 'D4': 1.777}, 11: {'A2': 0.285, 'D3': 0.256, 'D4': 1.744},
-            12: {'A2': 0.266, 'D3': 0.283, 'D4': 1.717}, 13: {'A2': 0.249, 'D3': 0.307, 'D4': 1.693},
-            14: {'A2': 0.235, 'D3': 0.328, 'D4': 1.672}, 15: {'A2': 0.223, 'D3': 0.347, 'D4': 1.653}
+            2:  {'A2': 1.880, 'D3': 0.000, 'D4': 3.267},
+            3:  {'A2': 1.023, 'D3': 0.000, 'D4': 2.574},
+            4:  {'A2': 0.729, 'D3': 0.000, 'D4': 2.282},
+            5:  {'A2': 0.577, 'D3': 0.000, 'D4': 2.114},
+            6:  {'A2': 0.483, 'D3': 0.030, 'D4': 2.004},
+            7:  {'A2': 0.419, 'D3': 0.118, 'D4': 1.924},
+            8:  {'A2': 0.373, 'D3': 0.136, 'D4': 1.864},
+            9:  {'A2': 0.337, 'D3': 0.184, 'D4': 1.816},
+            10: {'A2': 0.308, 'D3': 0.223, 'D4': 1.777},
+            11: {'A2': 0.285, 'D3': 0.256, 'D4': 1.744},
+            12: {'A2': 0.266, 'D3': 0.283, 'D4': 1.717},
+            13: {'A2': 0.249, 'D3': 0.307, 'D4': 1.693},
+            14: {'A2': 0.235, 'D3': 0.328, 'D4': 1.672},
+            15: {'A2': 0.223, 'D3': 0.347, 'D4': 1.653},
+            16: {'A2': 0.212, 'D3': 0.448, 'D4': 1.552},
+            17: {'A2': 0.203, 'D3': 0.466, 'D4': 1.534},
+            18: {'A2': 0.194, 'D3': 0.482, 'D4': 1.518},
+            19: {'A2': 0.187, 'D3': 0.497, 'D4': 1.483},
+            20: {'A2': 0.180, 'D3': 0.510, 'D4': 1.470},
         }
+
 
     def calcular_estadisticas_basicas(self, datos):
         datos = np.array(datos)
@@ -199,6 +213,11 @@ html_template = """
         .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
         .header { background: linear-gradient(135deg, #4c68d7 0%, #6e48aa 100%); color: white; padding: 25px 30px; text-align: center; }
         .header h1 { font-size: 2em; margin-bottom: 5px; }
+        .header p { font-size: 1.1em; margin-bottom: 15px; opacity: 0.9; }
+        .developers { background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 8px; margin-top: 15px; }
+        .developers h4 { font-size: 1em; margin-bottom: 8px; color: #ffffff; opacity: 0.9; }
+        .developers-list { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .developer { font-size: 0.95em; color: #ffffff; opacity: 0.95; }
         .content { padding: 30px; }
         .step { background: #fafafa; border-radius: 8px; padding: 25px; margin-bottom: 20px; border: 1px solid #e8e8e8; }
         .step h3 { color: #333; margin-bottom: 20px; font-size: 1.25em; }
@@ -228,15 +247,28 @@ html_template = """
         th { background: #f1f1f1; color: #333; font-weight: 600; }
         .chart-container { margin: 30px 0; text-align: center; }
         .chart-container img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .loading { display: flex; justify-content: center; align-items: center; height: 100px; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4c68d7; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .alert-error { background: #fff0f0; border-left: 4px solid #e74c3c; color: #c0392b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        
+        @media (max-width: 768px) {
+            .developers-list { flex-direction: column; align-items: center; gap: 10px; }
+            .radio-group { flex-direction: column; gap: 10px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header"><h1>📊 Programa de Análisis Estadístico</h1><p>Análisis de datos descriptivos y de control de procesos</p></header>
+        <header class="header">
+            <h1>📊 Programa de Análisis Estadístico</h1>
+            <p>Análisis de datos descriptivos y de control de procesos</p>
+            <div class="developers">
+                <h4>Desarrollado por:</h4>
+                <div class="developers-list">
+                    <div class="developer">Raul Cardoso Acevedo</div>
+                    <div class="developer">Alonso Domínguez López</div>
+                </div>
+            </div>
+        </header>
         <div class="content">
             <div class="step" id="step1">
                 <h3>1. Configuración del Análisis</h3>
@@ -247,12 +279,19 @@ html_template = """
             <div class="step hidden" id="step2">
                 <h3>2. Ingreso de Datos</h3>
                 <div id="datos-desagrupados"><div class="form-group"><label for="datos-input-desagrupado">Ingresa los datos separados por comas o espacios:</label><textarea id="datos-input-desagrupado" rows="6" placeholder="Ej: 12, 15 18.5, 20 22"></textarea></div></div>
-                <div id="datos-agrupados" class="hidden"><div class="form-group"><label for="datos-input-agrupado">Pega tu tabla de datos aquí (filas=muestras, columnas=observaciones):</label><textarea id="datos-input-agrupado" rows="10" placeholder="4.85  4.861 4.86  4.858 4.862\n4.871 4.88  4.861 4.864 4.872\n..."></textarea></div></div>
+                <div id="datos-agrupados" class="hidden"><div class="form-group"><label for="datos-input-agrupado">Pega tu tabla de datos aquí (filas=muestras, columnas=observaciones):</label><textarea id="datos-input-agrupado" rows="10" placeholder="4.85  4.861 4.86  4.858 4.862
+4.871 4.88  4.861 4.864 4.872
+..."></textarea></div></div>
                 <button class="btn" onclick="procesarDatos()">Analizar Datos</button>
             </div>
-            <div id="loading" class="loading hidden"><div class="spinner"></div></div>
+
             <div id="resultados" class="results hidden"><div id="contenido-resultados"></div></div>
+            <div class="bottom-actions" style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #e8e8e8;">
+                <button class="btn btn-secondary" onclick="nuevoAnalisis()">🔄 Nuevo Análisis</button>
+            </div>
+            
         </div>
+        
     </div>
     <script>
         function configurarAnalisis() {
@@ -266,11 +305,9 @@ html_template = """
         }
 
         async function procesarDatos() {
-            const loadingDiv = document.getElementById('loading');
             const resultadosDiv = document.getElementById('resultados');
             const contenidoResultados = document.getElementById('contenido-resultados');
             
-            loadingDiv.classList.remove('hidden');
             resultadosDiv.classList.add('hidden');
             contenidoResultados.innerHTML = '';
             
@@ -285,7 +322,7 @@ html_template = """
                     datosParaEnviar.datos = datosTexto;
                 } else {
                     const datosTexto = document.getElementById('datos-input-desagrupado').value;
-                    const datosLimpios = datosTexto.trim().replace(/[,\\s]+/g, ',');
+                    const datosLimpios = datosTexto.trim().replace(/[,\s]+/g, ',');
                     const datos = datosLimpios.split(',').map(d => parseFloat(d)).filter(d => !isNaN(d));
                     if (datos.length < 2) throw new Error('Se requieren al menos dos datos numéricos válidos.');
                     datosParaEnviar.datos = datos;
@@ -300,8 +337,6 @@ html_template = """
             } catch (error) {
                 contenidoResultados.innerHTML = `<div class="alert-error"><strong>Error:</strong> ${error.message}</div>`;
                 resultadosDiv.classList.remove('hidden');
-            } finally {
-                loadingDiv.classList.add('hidden');
             }
         }
 
