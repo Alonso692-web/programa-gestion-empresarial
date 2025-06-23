@@ -1,120 +1,166 @@
-# 📊 Programa de Análisis Estadístico con Flask
+# 📊 Programa de Análisis Estadístico
 
-Una aplicación web completa para realizar análisis estadístico de datos, incluyendo medidas de tendencia central, dispersión, gráficas y análisis visual de distribuciones.
+Una aplicación web desarrollada en Flask para realizar análisis estadísticos descriptivos y gráficas de control de procesos de manera intuitiva y profesional.
 
-## 🎯 Características
+## ✨ Características Principales
 
-### ✅ Funcionalidades Implementadas
+### 🔢 Datos Individuales
+- **Estadísticas básicas**: Media, mediana, moda, varianza, desviación estándar
+- **Medidas de forma**: Coeficiente de sesgo, curtosis con interpretaciones automáticas
+- **Rango y valores extremos**: Mínimo, máximo y rango de los datos
+- **Tabla de frecuencias**: Frecuencia absoluta, relativa, acumulada y relativa acumulada
 
-**Configuración Inicial:**
-- ✅ Selección entre datos muestrales o poblacionales
-- ✅ Selección entre datos agrupados o desagrupados
-- ✅ Interfaz intuitiva paso a paso
+### 📈 Datos Agrupados
+- **Análisis de subgrupos**: Soporte para tamaños de muestra de 2 a 20 observaciones
+- **Constantes de control**: Utiliza constantes estándar de ingeniería (A2, D3, D4)
+- **Límites de control**: Cálculo automático de límites superior e inferior
+- **Gráficas duales**: Visualización simultánea de gráficas X̄ y R
 
-**Para Datos Desagrupados:**
-- ✅ Medidas de tendencia central (media, mediana, moda)
-- ✅ Medidas de dispersión (varianza, desviación estándar)
-- ✅ Valores máximo, mínimo y rango
-- ✅ Tabla de frecuencias completa
-- ✅ Histograma con análisis de sesgo visual
-- ✅ Diagrama de caja y bigotes
+### 🎨 Visualizaciones Interactivas
+- **Histogramas** con líneas de referencia (media y mediana)
+- **Diagramas de caja** para identificar valores atípicos
+- **Gráficas de frecuencia** (relativa y acumulada)
+- **Gráficas de control** profesionales con límites claramente marcados
 
-**Para Datos Agrupados:**
-- ✅ Cálculo de parámetros: valor máximo, mínimo, rango, clases, amplitud
-- ✅ Medidas de tendencia central ajustadas para datos agrupados
-- ✅ Medidas de dispersión
-- ✅ Curtosis y sesgo estadístico
-- ✅ Histograma para datos agrupados
-- ✅ Gráfica X-R (Promedios y Rangos)
+## 🛠️ Tecnologías Utilizadas
 
-**Análisis Visual:**
-- ✅ Detección automática de sesgo (izquierda/derecha/simétrico)
-- ✅ Gráficas interactivas y de alta calidad
-- ✅ Interfaz moderna y responsive
+- **Backend**: Flask (Python)
+- **Análisis**: NumPy, Pandas, SciPy
+- **Visualización**: Matplotlib
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **Diseño**: Interfaz responsiva con gradientes modernos
 
-## 📖 Cómo Usar
+## 📋 Requisitos del Sistema
 
-### Para Datos Desagrupados
-
-1. **Configuración:**
-   - Selecciona "Muestral" o "Poblacional"
-   - Selecciona "Desagrupados"
-   - Haz clic en "Continuar"
-
-2. **Ingreso de Datos:**
-   - Ingresa los datos separados por comas
-   - Ejemplo: `12, 15, 18, 20, 22, 25, 28, 30`
-   - Haz clic en "Analizar Datos"
-
-3. **Resultados:**
-   - Estadísticas descriptivas
-   - Tabla de frecuencias
-   - Histograma con análisis de sesgo
-   - Diagrama de caja y bigotes
-
-### Para Datos Agrupados
-
-1. **Configuración:**
-   - Selecciona "Muestral" o "Poblacional"
-   - Selecciona "Agrupados"
-   - Haz clic en "Continuar"
-
-2. **Ingreso de Datos:**
-   - Ingresa las clases en formato "min-max" (ej: `10-20`)
-   - Ingresa la frecuencia para cada clase
-   - Usa "+ Agregar Clase" para más clases
-   - Haz clic en "Analizar Datos"
-
-3. **Resultados:**
-   - Parámetros de agrupación
-   - Estadísticas ajustadas para datos agrupados
-   - Curtosis y sesgo
-   - Histograma agrupado
-   - Gráfica X-R
-
-## 📊 Ejemplos de Uso
-
-### Ejemplo 1: Datos Desagrupados (Calificaciones)
 ```
-Datos: 85, 92, 78, 88, 95, 82, 90, 87, 93, 89
-Tipo: Muestral, Desagrupados
+Python 3.7+
+Flask
+NumPy
+Pandas
+Matplotlib
+SciPy
 ```
 
-### Ejemplo 2: Datos Agrupados (Edades)
-```
-Clases y Frecuencias:
-18-25: 15
-26-35: 22
-36-45: 18
-46-55: 12
-56-65: 8
-Tipo: Poblacional, Agrupados
+## 🚀 Instalación y Configuración
+
+1. **Clona el repositorio**:
+```bash
+git clone https://github.com/Alonso692-web/programa-gestion-empresarial
+cd programa-analisis-estadistico
 ```
 
-## 🎨 Características de la Interfaz
+2. **Instala las dependencias**:
+```bash
+pip install flask numpy pandas matplotlib scipy
+```
 
-- **Diseño Moderno:** Interfaz limpia con gradientes y efectos visuales
-- **Responsive:** Se adapta a diferentes tamaños de pantalla
-- **Paso a Paso:** Guía intuitiva through el proceso de análisis
-- **Gráficas de Alta Calidad:** Visualizaciones profesionales con matplotlib
-- **Análisis Automático:** Interpretación automática de sesgo y distribución
+3. **Ejecuta la aplicación**:
+```bash
+python app.py
+```
 
-### Análisis Estadístico Completo
-- Cálculos precisos para muestras y poblaciones
-- Fórmulas correctas según el tipo de datos
-- Manejo de casos especiales (sin moda, etc.)
+4. **Accede a la aplicación**:
+Abre tu navegador y visita `http://localhost:5000`
 
-### Visualizaciones Profesionales
-- Histogramas con líneas de media y mediana
-- Detección visual automática de sesgo
-- Gráficas X-R para control de calidad
-- Diagramas de caja con análisis de outliers
+## 📖 Guía de Uso
 
-### Interfaz Intuitiva
-- Validación de datos en tiempo real
-- Mensajes de error informativos
-- Carga dinámica de resultados
-- Diseño adaptable a móviles
+### Análisis Descriptivo (Datos Individuales)
 
+1. **Configuración**: Selecciona "Muestral" o "Poblacional" según tu tipo de datos
+2. **Tipo de análisis**: Elige "Análisis Descriptivo (Individual)"
+3. **Ingreso de datos**: Introduce los valores separados por comas o espacios
+   ```
+   Ejemplo: 12, 15, 18.5, 20, 22, 19, 16, 14
+   ```
+4. **Resultados**: Obtén estadísticas completas y visualizaciones automáticas
 
-**¡Disfruta analizando tus datos! 📊✨**
+### Gráficas de Control X-R (Subgrupos)
+
+1. **Configuración**: Selecciona el tipo de datos
+2. **Tipo de análisis**: Elige "Gráficas de Control X-R (Subgrupos)"
+3. **Formato de datos**: Pega tu tabla donde:
+   - Cada fila = una muestra/subgrupo
+   - Cada columna = una observación
+   ```
+   Ejemplo:
+   4.85  4.861 4.86  4.858 4.862
+   4.871 4.88  4.861 4.864 4.872
+   4.869 4.863 4.855 4.870 4.865
+   ```
+4. **Análisis**: Obtén métricas de control y gráficas profesionales
+
+## 📊 Interpretación de Resultados
+
+### Estadísticas Descriptivas
+
+- **Sesgo**: 
+  - Positivo: Distribución asimétrica hacia la derecha
+  - Negativo: Distribución asimétrica hacia la izquierda
+  - Cercano a 0: Distribución aproximadamente simétrica
+
+- **Curtosis**:
+  - Leptocúrtica (>0.2): Distribución más apuntada que la normal
+  - Mesocúrtica (≈0): Distribución similar a la normal
+  - Platicúrtica (<-0.2): Distribución más aplanada que la normal
+
+### Gráficas de Control
+
+- **LCS/LCI**: Límites de control superior e inferior
+- **LC**: Línea central (promedio del proceso)
+- **Puntos fuera de límites**: Indican posible descontrol del proceso
+
+## 🎯 Casos de Uso
+
+- **Control de calidad industrial**
+- **Análisis de procesos de manufactura**
+- **Investigación académica y educativa**
+- **Análisis de datos en ingeniería**
+- **Estudios de capacidad de procesos**
+
+## 📁 Estructura del Proyecto
+
+```
+ANALISIS-ESTADISTICO/
+│
+├── templates/            # Plantillas HTML
+│   └── index.html       # Interfaz de usuario principal
+├── venv_project/        # Entorno virtual de Python
+├── app.py               # Aplicación principal Flask
+├── Procfile             # Configuración para despliegue
+├── README.md            # Documentación del proyecto
+├── requirements.txt     # Dependencias del proyecto
+└── runtime.txt          # Versión de Python para despliegue
+```
+
+## 🔧 Características Técnicas
+
+### Constantes de Control Soportadas
+- Tamaños de muestra: n = 2 hasta n = 20
+- Constantes A2, D3, D4 según estándares de ingeniería
+- Cálculos basados en métodos estadísticos reconocidos
+
+### Algoritmos Implementados
+- **Sesgo de Pearson**: Coeficientes basados en moda y mediana
+- **Curtosis de Fisher**: Medida de apuntamiento ajustada
+- **Estadísticas robustas**: Manejo de valores atípicos
+- **Validación de datos**: Filtros automáticos para datos inválidos
+
+## 👥 Desarrolladores
+
+- **Raul Cardoso Acevedo**
+- **Alonso Domínguez López**
+
+## 📝 Notas Importantes
+
+- Los datos deben ser numéricos válidos
+- Para gráficas de control, se requieren al menos 2 subgrupos
+- El tamaño de muestra debe estar entre 2 y 20 observaciones
+- La aplicación maneja automáticamente valores faltantes
+
+## 📄 Licencia
+
+La de dios padres🙏
+
+---
+
+*Para soporte técnico o sugerencias, contacta a los desarrolladores.*
