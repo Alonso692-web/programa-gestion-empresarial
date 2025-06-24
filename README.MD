@@ -159,8 +159,6 @@ ANALISIS-ESTADISTICO/
 
 ## 📄 Licencia
 
-La de dios padres🙏
+La de dios padre🙏
 
 ---
-
-*Para soporte técnico o sugerencias, contacta a los desarrolladores.*
